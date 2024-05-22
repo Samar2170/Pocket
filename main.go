@@ -5,6 +5,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -21,6 +22,7 @@ func main() {
 		panic(err)
 	}
 	e := echo.New()
+	e.Use(middleware.Logger())
 	e.GET("/:baseFolder/:subFolder/:fileName", func(c echo.Context) error {
 		file, err := os.Open(BASEDIR + c.Param("baseFolder") + "/" + c.Param("subFolder") + "/" + c.Param("fileName"))
 		if err != nil {
