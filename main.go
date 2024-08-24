@@ -4,20 +4,27 @@ import (
 	"os"
 	"strings"
 
-	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
-var basedir string
-
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
-	}
-	basedir = os.Getenv("BASEDIR")
-	hostname := os.Getenv("HOSTNAME")
+	// var wg sync.WaitGroup
+	// wg.Add(1)
+	// go func() {
+	// 	RunStorageServer()
+	// 	wg.Done()
+	// }()
+
+	// wg.Add(1)
+	// go func() {
+	RunTelegramServer()
+	// 	wg.Done()
+	// }()
+	// wg.Wait()
+}
+
+func RunStorageServer() {
 	if err := os.Setenv("HOSTNAME", hostname); err != nil {
 		panic(err)
 	}
@@ -25,6 +32,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.GET("fxb-storage/:baseFolder/:subFolder/:fileName", GetFXBStorage)
 	e.Logger.Fatal(e.Start(":8080"))
+
 }
 
 func GetFXBStorage(c echo.Context) error {

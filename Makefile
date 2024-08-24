@@ -34,5 +34,5 @@ run:
 	@echo "Creating logs directory..."
 	@make make-logs-dir
 	@echo "Running the application..."
-	@go run main.go
+	@go run .
 	
