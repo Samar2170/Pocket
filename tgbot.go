@@ -18,35 +18,47 @@ var userIds = []int64{
 
 var (
 	// Menu texts
-	firstMenu  = "<b>Menu 1</b>\n\nA beautiful menu with a shiny inline button."
-	secondMenu = "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
+	firstMenu  = "<b>Menu 1</b>\n\nActions"
+	secondMenu = "<b>Menu 2</b>\n\nSelect Account"
 
 	// Button texts
-	nextButton     = "Next"
-	backButton     = "Back"
-	tutorialButton = "Tutorial"
+	createContentButton      = "Create content"
+	createImageContentButton = "Create image content"
+	backButton               = "Back"
+	accounts                 = []string{
+		"sillybutcher1",
+	}
 
 	// Store bot screaming status
-	screaming = false
-	bot       *tgbotapi.BotAPI
+	takingInput = false
+	bot         *tgbotapi.BotAPI
 
 	// Keyboard layout for the first menu. One button, one row
 	firstMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(nextButton, nextButton),
+			tgbotapi.NewInlineKeyboardButtonData(createContentButton, createContentButton),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(createImageContentButton, createImageContentButton),
 		),
 	)
 
 	// Keyboard layout for the second menu. Two buttons, one per row
-	secondMenuMarkup = tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData(backButton, backButton),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL(tutorialButton, "https://core.telegram.org/bots/api"),
-		),
-	)
 )
+
+var accountMenuMarkup tgbotapi.InlineKeyboardMarkup
+
+func init() {
+	for _, account := range accounts {
+		accountMenuMarkup.InlineKeyboard = append(accountMenuMarkup.InlineKeyboard, tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(account, account),
+		))
+	}
+
+	accountMenuMarkup.InlineKeyboard = append(accountMenuMarkup.InlineKeyboard, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData(backButton, backButton),
+	))
+}
 
 func RunTelegramServer() {
 	var err error
@@ -98,7 +110,7 @@ func handleMessage(message *tgbotapi.Message) {
 		return
 	}
 	chatID := message.Chat.ID
-	if utils.CheckArray[int64](userIds, user.ID) {
+	if !utils.CheckArray[int64](userIds, user.ID) {
 		bot.Send(tgbotapi.NewMessage(chatID, "I don't know you!"))
 		return
 	}
@@ -106,13 +118,15 @@ func handleMessage(message *tgbotapi.Message) {
 	var err error
 	if strings.HasPrefix(text, "/") {
 		err = handleCommand(message.Chat.ID, text)
-	} else if screaming && len(text) > 0 {
-		msg := tgbotapi.NewMessage(message.Chat.ID, text)
+	} else if takingInput && len(text) > 0 {
+		// db save text and
+		msg := tgbotapi.NewMessage(message.Chat.ID, "input received")
 		msg.Entities = message.Entities
 		_, err = bot.Send(msg)
+		takingInput = false
 	} else {
-		copyMsg := tgbotapi.NewCopyMessage(message.Chat.ID, message.Chat.ID, message.MessageID)
-		_, err = bot.CopyMessage(copyMsg)
+		msg := tgbotapi.NewMessage(message.Chat.ID, "I don't know what you want")
+		_, err = bot.Send(msg)
 	}
 	if err != nil {
 		log.Println(err)
@@ -122,11 +136,8 @@ func handleMessage(message *tgbotapi.Message) {
 func handleCommand(chatId int64, command string) error {
 	var err error
 	switch command {
-	case "/scream":
-		screaming = true
-		break
-	case "/whisper":
-		screaming = false
+	case "/start":
+		err = sendMenu(chatId)
 		break
 	case "/menu":
 		err = sendMenu(chatId)
@@ -140,12 +151,17 @@ func handleButton(query *tgbotapi.CallbackQuery) {
 	markup := tgbotapi.NewInlineKeyboardMarkup()
 	message := query.Message
 
-	if query.Data == nextButton {
+	if query.Data == createContentButton {
 		text = secondMenu
-		markup = secondMenuMarkup
+		markup = accountMenuMarkup
+	} else if utils.CheckArray(accounts, query.Data) {
+		takingInput = true
 	} else if query.Data == backButton {
-		text = firstMenu
-		markup = firstMenuMarkup
+		err := sendMenu(query.Message.Chat.ID)
+		if err != nil {
+			log.Println(err)
+		}
+		return
 	}
 
 	callbackCfg := tgbotapi.NewCallback(query.ID, "")
