@@ -5,6 +5,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"pocket/internal"
+	"pocket/pkg/db"
 	"pocket/pkg/utils"
 	"strings"
 
@@ -119,15 +121,56 @@ func handleMessage(message *tgbotapi.Message) {
 	if strings.HasPrefix(text, "/") {
 		err = handleCommand(message.Chat.ID, text)
 	} else if takingInput && len(text) > 0 {
-		// db save text and
-		msg := tgbotapi.NewMessage(message.Chat.ID, "input received")
+		var msg tgbotapi.MessageConfig
+		err = db.DB.Create(&internal.TextContent{Text: text, Account: message.From.UserName}).Error
+		if err != nil {
+			msg = tgbotapi.NewMessage(chatID, "Something went wrong")
+		} else {
+			msg = tgbotapi.NewMessage(message.Chat.ID, "input received")
+		}
 		msg.Entities = message.Entities
 		_, err = bot.Send(msg)
+		takingInput = false
+	} else if takingInput && message.Photo != nil {
+		files := message.Photo
+		var msgString string
+		imageUrl, err := downloadAndSaveFileFromTg(files[len(files)-1].FileID, false)
+		if err != nil {
+			msgString = "Something went wrong while downloading image"
+			log.Println(err)
+		}
+		tbUrl, err := downloadAndSaveFileFromTg(files[0].FileID, true)
+		if err != nil {
+			msgString = "Something went wrong while downloading image thumbnail"
+			log.Println(err)
+		}
+		err = db.DB.Create(&internal.ImageContent{ImageURL: imageUrl, Account: message.From.UserName}).Error
+		if err != nil {
+			msgString = "Something went wrong while saving image to db"
+			log.Println(err)
+		}
+		err = db.DB.Create(&internal.ImageContent{ImageURL: tbUrl, Account: message.From.UserName}).Error
+		if err != nil {
+			msgString = "Something went wrong while saving image thumbnail to db"
+			log.Println(err)
+		}
+		if msgString == "" {
+			msgString = "Image saved successfully"
+		}
+		msg := tgbotapi.NewMessage(message.Chat.ID, msgString)
+		_, err = bot.Send(msg)
+		if err != nil {
+			log.Println(err)
+		}
 		takingInput = false
 	} else {
 		msg := tgbotapi.NewMessage(message.Chat.ID, "I don't know what you want")
 		_, err = bot.Send(msg)
 	}
+	if err != nil {
+		log.Println(err)
+	}
+	err = sendMenu(chatID)
 	if err != nil {
 		log.Println(err)
 	}
@@ -151,17 +194,20 @@ func handleButton(query *tgbotapi.CallbackQuery) {
 	markup := tgbotapi.NewInlineKeyboardMarkup()
 	message := query.Message
 
-	if query.Data == createContentButton {
+	switch {
+	case query.Data == createContentButton || query.Data == createImageContentButton:
 		text = secondMenu
 		markup = accountMenuMarkup
-	} else if utils.CheckArray(accounts, query.Data) {
+	case utils.CheckArray(accounts, query.Data):
 		takingInput = true
-	} else if query.Data == backButton {
-		err := sendMenu(query.Message.Chat.ID)
+		msg := tgbotapi.NewMessage(query.Message.Chat.ID, "waiting for input")
+		_, err := bot.Send(msg)
 		if err != nil {
 			log.Println(err)
 		}
-		return
+	case query.Data == backButton:
+		text = firstMenu
+		markup = firstMenuMarkup
 	}
 
 	callbackCfg := tgbotapi.NewCallback(query.ID, "")
@@ -179,4 +225,16 @@ func sendMenu(chatId int64) error {
 	msg.ReplyMarkup = firstMenuMarkup
 	_, err := bot.Send(msg)
 	return err
+}
+func downloadAndSaveFileFromTg(fileId string, isThumbnail bool) (string, error) {
+	file, err := bot.GetFile(tgbotapi.FileConfig{FileID: fileId})
+	if err != nil {
+		return "", err
+	}
+	fileUrl := file.Link(BotToken)
+	if isThumbnail {
+		return internal.SaveImageThumbnail(fileUrl)
+	}
+	return internal.SaveImage(fileUrl)
+
 }

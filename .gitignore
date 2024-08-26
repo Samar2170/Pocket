@@ -1,1 +1,7 @@
 .env
+
+/uploads/**
+
+dev.db
+
+accountmap.json
