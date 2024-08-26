@@ -94,17 +94,30 @@ func recieveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
 }
 
 func handleUpdate(update tgbotapi.Update) {
+	var accountUsername string
+	var account internal.Account
+	var err error
+	if update.CallbackQuery != nil {
+		if utils.CheckArray(accounts, accountUsername) {
+			account, err = internal.GetAccountByUsername(accountUsername)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
+	}
+
 	switch {
-	case update.Message != nil:
-		handleMessage(update.Message)
-		return
 	case update.CallbackQuery != nil:
 		handleButton(update.CallbackQuery)
+		return
+	case update.Message != nil:
+		handleMessage(update.Message, account)
 		return
 	}
 }
 
-func handleMessage(message *tgbotapi.Message) {
+func handleMessage(message *tgbotapi.Message, account internal.Account) {
 	user := message.From
 	text := message.Text
 
@@ -122,7 +135,7 @@ func handleMessage(message *tgbotapi.Message) {
 		err = handleCommand(message.Chat.ID, text)
 	} else if takingInput && len(text) > 0 {
 		var msg tgbotapi.MessageConfig
-		err = db.DB.Create(&internal.TextContent{Text: text, Account: message.From.UserName}).Error
+		err = db.DB.Create(&internal.TextContent{Text: text, Account: account}).Error
 		if err != nil {
 			msg = tgbotapi.NewMessage(chatID, "Something went wrong")
 		} else {
@@ -144,12 +157,12 @@ func handleMessage(message *tgbotapi.Message) {
 			msgString = "Something went wrong while downloading image thumbnail"
 			log.Println(err)
 		}
-		err = db.DB.Create(&internal.ImageContent{ImageURL: imageUrl, Account: message.From.UserName}).Error
+		err = db.DB.Create(&internal.ImageContent{ImageURL: imageUrl, Account: account}).Error
 		if err != nil {
 			msgString = "Something went wrong while saving image to db"
 			log.Println(err)
 		}
-		err = db.DB.Create(&internal.ImageContent{ImageURL: tbUrl, Account: message.From.UserName}).Error
+		err = db.DB.Create(&internal.ImageContent{ImageURL: tbUrl, Account: account}).Error
 		if err != nil {
 			msgString = "Something went wrong while saving image thumbnail to db"
 			log.Println(err)
@@ -190,7 +203,7 @@ func handleCommand(chatId int64, command string) error {
 }
 func handleButton(query *tgbotapi.CallbackQuery) {
 	var text string
-
+	var err error
 	markup := tgbotapi.NewInlineKeyboardMarkup()
 	message := query.Message
 
@@ -201,7 +214,7 @@ func handleButton(query *tgbotapi.CallbackQuery) {
 	case utils.CheckArray(accounts, query.Data):
 		takingInput = true
 		msg := tgbotapi.NewMessage(query.Message.Chat.ID, "waiting for input")
-		_, err := bot.Send(msg)
+		_, err = bot.Send(msg)
 		if err != nil {
 			log.Println(err)
 		}

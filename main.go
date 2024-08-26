@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"os"
+	"pocket/internal"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -9,6 +11,20 @@ import (
 )
 
 func main() {
+
+	args := os.Args[1:]
+	switch args[0] {
+	case "load":
+		log.Println("loading accounts")
+		err := internal.LoadAccounts()
+		if err != nil {
+			log.Println(err)
+		}
+	case "server":
+		RunStorageServer()
+	default:
+		RunTelegramServer()
+	}
 	// var wg sync.WaitGroup
 	// wg.Add(1)
 	// go func() {
