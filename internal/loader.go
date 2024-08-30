@@ -8,25 +8,8 @@ import (
 	"pocket/pkg/db"
 	"sync"
 
-	"gorm.io/gorm"
+	"pocket/internal/models"
 )
-
-func init() {
-	db.DB.AutoMigrate(&TextContent{}, &ImageContent{})
-}
-
-type Account struct {
-	*gorm.Model
-	Username string
-	ID       int64
-}
-
-func GetAccountByUsername(username string) (Account, error) {
-	var err error
-	var account Account
-	err = db.DB.Where("username = ?", username).First(&account).Error
-	return account, err
-}
 
 func LoadAccounts() error {
 	var err error
@@ -42,7 +25,7 @@ func LoadAccounts() error {
 	var accountMap map[string]int64
 	json.Unmarshal(byteValue, &accountMap)
 	for k, v := range accountMap {
-		err := db.DB.FirstOrCreate(&Account{Username: k, ID: v}).Error
+		err := db.DB.FirstOrCreate(&models.Account{Username: k, ID: v}).Error
 		if err != nil {
 			log.Println(err.Error() + "occurred" + k)
 		}
@@ -56,12 +39,6 @@ func LoadAccounts() error {
 	}()
 	wg.Wait()
 	return nil
-}
-
-type Upstream struct {
-	ServiceName string            `json:"servicename"`
-	BaseURL     string            `json:"baseurl"`
-	SubURLMap   map[string]string `json:"suburl_map"`
 }
 
 func LoadAccountUpstreams() error {
@@ -99,7 +76,7 @@ func LoadAccountUpstreams() error {
 				log.Println(err)
 				continue
 			}
-			var usMap Upstream
+			var usMap models.Upstream
 			err = json.Unmarshal(usJson, &usMap)
 			if err != nil {
 				log.Println(err)
@@ -110,7 +87,7 @@ func LoadAccountUpstreams() error {
 				log.Println(err)
 				continue
 			}
-			err = db.DB.Create(&AccountUpstream{
+			err = db.DB.Create(&models.AccountUpstream{
 				AccountID: result.ID,
 				Name:      usMap.ServiceName,
 				BaseURL:   usMap.BaseURL,
@@ -123,33 +100,4 @@ func LoadAccountUpstreams() error {
 		}
 	}
 	return err
-}
-
-type TextContent struct {
-	*gorm.Model
-	ID       int64
-	Text     string `gorm:"type:text;not null"`
-	Username string
-
-	AccountID int64
-	Account   Account `gorm:"foreignKey:AccountID"`
-}
-
-type ImageContent struct {
-	*gorm.Model
-	ID       int64
-	ImageURL string `gorm:"type:text;not null"`
-	Username string
-	Caption  string
-
-	AccountID int64
-	Account   Account `gorm:"foreignKey:AccountID"`
-}
-
-func (t *TextContent) TableName() string {
-	return "text_content"
-}
-
-func (i *ImageContent) TableName() string {
-	return "image_content"
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"pocket/internal"
+	"pocket/internal/models"
 	"pocket/pkg/db"
 	"pocket/pkg/utils"
 	"strings"
@@ -95,11 +96,11 @@ func recieveUpdates(ctx context.Context, updates tgbotapi.UpdatesChannel) {
 
 func handleUpdate(update tgbotapi.Update) {
 	var accountUsername string
-	var account internal.Account
+	var account models.Account
 	var err error
 	if update.CallbackQuery != nil {
 		if utils.CheckArray(accounts, accountUsername) {
-			account, err = internal.GetAccountByUsername(accountUsername)
+			account, err = models.GetAccountByUsername(accountUsername)
 			if err != nil {
 				log.Println(err)
 			}
@@ -117,7 +118,7 @@ func handleUpdate(update tgbotapi.Update) {
 	}
 }
 
-func handleMessage(message *tgbotapi.Message, account internal.Account) {
+func handleMessage(message *tgbotapi.Message, account models.Account) {
 	user := message.From
 	text := message.Text
 
@@ -135,7 +136,7 @@ func handleMessage(message *tgbotapi.Message, account internal.Account) {
 		err = handleCommand(message.Chat.ID, text)
 	} else if takingInput && len(text) > 0 {
 		var msg tgbotapi.MessageConfig
-		err = db.DB.Create(&internal.TextContent{Text: text, Account: account}).Error
+		err = db.DB.Create(&models.TextContent{Text: text, Account: account}).Error
 		if err != nil {
 			msg = tgbotapi.NewMessage(chatID, "Something went wrong")
 		} else {
@@ -157,12 +158,12 @@ func handleMessage(message *tgbotapi.Message, account internal.Account) {
 			msgString = "Something went wrong while downloading image thumbnail"
 			log.Println(err)
 		}
-		err = db.DB.Create(&internal.ImageContent{ImageURL: imageUrl, Account: account}).Error
+		err = db.DB.Create(&models.ImageContent{ImageURL: imageUrl, Account: account}).Error
 		if err != nil {
 			msgString = "Something went wrong while saving image to db"
 			log.Println(err)
 		}
-		err = db.DB.Create(&internal.ImageContent{ImageURL: tbUrl, Account: account}).Error
+		err = db.DB.Create(&models.ImageContent{ImageURL: tbUrl, Account: account}).Error
 		if err != nil {
 			msgString = "Something went wrong while saving image thumbnail to db"
 			log.Println(err)
