@@ -5,6 +5,7 @@ import (
 	"os"
 	"pocket/internal"
 	"strings"
+	"sync"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -21,9 +22,21 @@ func main() {
 			log.Println(err)
 		}
 	case "server":
-		RunStorageServer()
+		var wg sync.WaitGroup
+		wg.Add(1)
+		go func() {
+			RunStorageServer()
+			wg.Done()
+		}()
+		wg.Add(1)
+		go func() {
+			RunTelegramServer()
+			wg.Done()
+		}()
+		wg.Wait()
+
 	default:
-		RunTelegramServer()
+		log.Fatalln("invalid argument")
 	}
 	// var wg sync.WaitGroup
 	// wg.Add(1)
@@ -34,7 +47,6 @@ func main() {
 
 	// wg.Add(1)
 	// go func() {
-	RunTelegramServer()
 	// 	wg.Done()
 	// }()
 	// wg.Wait()
