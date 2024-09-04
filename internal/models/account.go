@@ -8,6 +8,9 @@ import (
 
 func init() {
 	db.DB.AutoMigrate(&Account{})
+	db.DB.AutoMigrate(&AccountUpstream{})
+	db.DB.AutoMigrate(&TextContent{}, &ImageContent{})
+	db.DB.AutoMigrate(&FileMetaData{})
 }
 
 type Account struct {

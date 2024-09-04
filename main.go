@@ -2,13 +2,13 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"os"
+	"pocket/handlers"
 	"pocket/internal"
-	"strings"
 	"sync"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/gorilla/mux"
 )
 
 func main() {
@@ -21,13 +21,15 @@ func main() {
 		if err != nil {
 			log.Println(err)
 		}
+	case "fxb":
+		RunFXBStorageServer()
 	case "server":
 		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			RunStorageServer()
-			wg.Done()
-		}()
+		// wg.Add(1)
+		// go func() {
+		// 	RunFXBStorageServer()
+		// 	wg.Done()
+		// }()
 		wg.Add(1)
 		go func() {
 			RunTelegramServer()
@@ -53,23 +55,15 @@ func main() {
 }
 
 func RunStorageServer() {
-	if err := os.Setenv("HOSTNAME", hostname); err != nil {
-		panic(err)
-	}
-	e := echo.New()
-	e.Use(middleware.Logger())
-	e.GET("fxb-storage/:baseFolder/:subFolder/:fileName", GetFXBStorage)
-	e.Logger.Fatal(e.Start(":8080"))
+	mux := mux.NewRouter()
+	storage := mux.PathPrefix("storage").Subrouter()
+	storage.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	getFileHandler := http.HandlerFunc(handlers.GetFileHandler)
+	storage.Handle("/file/{id}", getFileHandler).Methods("GET")
 
-}
-
-func GetFXBStorage(c echo.Context) error {
-	finalPath := basedir + c.Param("baseFolder") + "/" + c.Param("subFolder") + "/" + c.Param("fileName")
-	file, err := os.Open(finalPath)
-	imageFormat := strings.Split(file.Name(), ".")[len(strings.Split(file.Name(), "."))-1]
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	return c.Stream(200, "image/"+imageFormat, file)
+	uploadFileHandler := http.HandlerFunc(handlers.UploadFileHandler)
+	storage.Handle("/upload", uploadFileHandler).Methods("POST")
+	http.ListenAndServe(":8080", mux)
 }
