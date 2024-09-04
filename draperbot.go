@@ -148,24 +148,14 @@ func handleMessage(message *tgbotapi.Message, account models.Account) {
 	} else if takingInput && message.Photo != nil {
 		files := message.Photo
 		var msgString string
-		imageUrl, err := downloadAndSaveFileFromTg(files[len(files)-1].FileID, false)
+		imageUrl, err := downloadAndSaveFileFromTg(files[len(files)-1].FileID)
 		if err != nil {
 			msgString = "Something went wrong while downloading image"
-			log.Println(err)
-		}
-		tbUrl, err := downloadAndSaveFileFromTg(files[0].FileID, true)
-		if err != nil {
-			msgString = "Something went wrong while downloading image thumbnail"
 			log.Println(err)
 		}
 		err = db.DB.Create(&models.ImageContent{ImageURL: imageUrl, Account: account}).Error
 		if err != nil {
 			msgString = "Something went wrong while saving image to db"
-			log.Println(err)
-		}
-		err = db.DB.Create(&models.ImageContent{ImageURL: tbUrl, Account: account}).Error
-		if err != nil {
-			msgString = "Something went wrong while saving image thumbnail to db"
 			log.Println(err)
 		}
 		if msgString == "" {
@@ -240,15 +230,12 @@ func sendMenu(chatId int64) error {
 	_, err := bot.Send(msg)
 	return err
 }
-func downloadAndSaveFileFromTg(fileId string, isThumbnail bool) (string, error) {
+func downloadAndSaveFileFromTg(fileId string) (string, error) {
 	file, err := bot.GetFile(tgbotapi.FileConfig{FileID: fileId})
 	if err != nil {
 		return "", err
 	}
 	fileUrl := file.Link(BotToken)
-	if isThumbnail {
-		return internal.SaveImageThumbnail(fileUrl)
-	}
-	return internal.SaveImage(fileUrl)
+	return internal.SaveImageTelegram(fileUrl)
 
 }
