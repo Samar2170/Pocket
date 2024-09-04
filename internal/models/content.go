@@ -10,6 +10,8 @@ type TextContent struct {
 
 	AccountID int64
 	Account   Account `gorm:"foreignKey:AccountID"`
+
+	UpstreamSynced bool `gorm:"default:false"`
 }
 
 type ImageContent struct {
@@ -21,6 +23,8 @@ type ImageContent struct {
 
 	AccountID int64
 	Account   Account `gorm:"foreignKey:AccountID"`
+
+	UpstreamSynced bool `gorm:"default:false"`
 }
 
 func (t *TextContent) TableName() string {

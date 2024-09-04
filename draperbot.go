@@ -27,6 +27,7 @@ var (
 	// Button texts
 	createContentButton      = "Create content"
 	createImageContentButton = "Create image content"
+	loadAccountsButton       = "Load Accounts"
 	backButton               = "Back"
 	accounts                 = []string{
 		"sillybutcher1",
@@ -43,6 +44,9 @@ var (
 		),
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData(createImageContentButton, createImageContentButton),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(loadAccountsButton, loadAccountsButton),
 		),
 	)
 
@@ -205,6 +209,7 @@ func handleCommand(chatId int64, command string) error {
 func handleButton(query *tgbotapi.CallbackQuery) {
 	var text string
 	var err error
+	var msgText string
 	markup := tgbotapi.NewInlineKeyboardMarkup()
 	message := query.Message
 
@@ -214,23 +219,34 @@ func handleButton(query *tgbotapi.CallbackQuery) {
 		markup = accountMenuMarkup
 	case utils.CheckArray(accounts, query.Data):
 		takingInput = true
-		msg := tgbotapi.NewMessage(query.Message.Chat.ID, "waiting for input")
+		msgText = "waiting for input"
+	case query.Data == backButton:
+		text = firstMenu
+		markup = firstMenuMarkup
+	case query.Data == loadAccountsButton:
+		err = internal.LoadAccounts()
+		if err != nil {
+			msgText = "Something went wrong while loading accounts"
+		}
+		msgText = "Accounts loaded successfully"
+
+	}
+
+	if msgText != "" {
+		msg := tgbotapi.NewMessage(message.Chat.ID, msgText)
 		_, err = bot.Send(msg)
 		if err != nil {
 			log.Println(err)
 		}
-	case query.Data == backButton:
-		text = firstMenu
-		markup = firstMenuMarkup
+	} else {
+		callbackCfg := tgbotapi.NewCallback(query.ID, "")
+		bot.Send(callbackCfg)
+
+		// Replace menu text and keyboard
+		msg := tgbotapi.NewEditMessageTextAndMarkup(message.Chat.ID, message.MessageID, text, markup)
+		msg.ParseMode = tgbotapi.ModeHTML
+		bot.Send(msg)
 	}
-
-	callbackCfg := tgbotapi.NewCallback(query.ID, "")
-	bot.Send(callbackCfg)
-
-	// Replace menu text and keyboard
-	msg := tgbotapi.NewEditMessageTextAndMarkup(message.Chat.ID, message.MessageID, text, markup)
-	msg.ParseMode = tgbotapi.ModeHTML
-	bot.Send(msg)
 }
 
 func sendMenu(chatId int64) error {
