@@ -25,7 +25,7 @@ func SaveFile(file multipart.File, fileHeader *multipart.FileHeader) (string, er
 	if _, ok := ValidExtensions[extension]; !ok {
 		return "", errors.New("unallowed file extension")
 	}
-	newFilePath := filepath.Join(UploadDir, "uploads", newFileName)
+	newFilePath := filepath.Join(UploadDir, "pocketstorage", newFileName)
 	newFile, err := os.Create(newFilePath)
 	if err != nil {
 		return "", err

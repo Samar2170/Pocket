@@ -1,6 +1,7 @@
 package models
 
 import (
+	"pocket/pkg/db"
 	"time"
 )
 
@@ -16,4 +17,10 @@ type FileMetaData struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func GetFileMetaDataById(id string) (FileMetaData, error) {
+	var fmd FileMetaData
+	err := db.DB.Where("id = ?", id).First(&fmd).Error
+	return fmd, err
 }
