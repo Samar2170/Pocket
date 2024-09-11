@@ -1,9 +1,7 @@
 package main
 
 import (
-	"log"
 	"net/http"
-	"os"
 	"pocket/handlers"
 
 	"github.com/gorilla/mux"
@@ -11,16 +9,18 @@ import (
 
 func main() {
 
-	args := os.Args[1:]
-	switch args[0] {
-	case "fxb":
-		RunFXBStorageServer()
-	case "storage":
-		RunStorageServer()
+	// args := os.Args[1:]
+	// switch args[0] {
+	// case "fxb":
+	// 	RunFXBStorageServer()
+	// case "storage":
+	// 	RunStorageServer()
+	// case "server":
+	// 	RunTelegramServer()
+	// default:
+	RunTelegramServer()
 
-	default:
-		log.Fatalln("invalid argument")
-	}
+	// }
 }
 
 func RunStorageServer() {

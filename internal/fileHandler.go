@@ -57,7 +57,7 @@ func SaveFile(file multipart.File, fileHeader *multipart.FileHeader) (string, er
 	return fmd.ID, nil
 }
 
-func SaveImageTelegram(fileURL string) (string, error) {
+func SaveFileTelegram(fileURL string) (string, error) {
 	resp, err := http.Get(fileURL)
 	if err != nil {
 		return "", err
@@ -71,12 +71,36 @@ func SaveImageTelegram(fileURL string) (string, error) {
 	}
 
 	fileName := fileURL[strings.LastIndex(fileURL, "/")+1:]
-	err = os.WriteFile("uploads/"+fileName, byteValue, 0644)
+	newFilePath := filepath.Join(UploadDir, "pocketstorage", fileName)
+	err = os.WriteFile(newFilePath, byteValue, 0644)
 	if err != nil {
 		return "", err
 	}
+	fileId := uuid.New().String()
+	fmd := models.FileMetaData{
+		ID:          fileId,
+		OgFileName:  fileName,
+		NewFileName: fileName,
+		FilePath:    newFilePath,
+		Extension:   filepath.Ext(fileName),
+		Size:        len(byteValue),
+		SizeInMB:    utils.ConvertFileSize(float64(len(byteValue)), "bytes", "mb"),
+		CreatedAt:   time.Now(),
+	}
+	err = db.DB.Create(&fmd).Error
+	if err != nil {
+		return "", err
+	}
+	return fileId, nil
+}
 
-	return fileName, nil
+func SaveFileCaption(fileId, caption string) error {
+	fc := models.FileCaption{
+		ID:      uuid.New().String(),
+		FileID:  fileId,
+		Caption: caption,
+	}
+	return db.DB.Create(&fc).Error
 }
 
 func GetFileByID(id string) ([]byte, models.FileMetaData, error) {
