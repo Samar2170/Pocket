@@ -30,6 +30,7 @@ func main() {
 			RunStorageServer()
 			wg.Done()
 		}()
+		wg.Wait()
 	default:
 		log.Panic("Invalid argument")
 	}

@@ -7,3 +7,5 @@ dev.db
 account*.json
 
 __debug**
+
+pocket*
