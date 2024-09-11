@@ -18,6 +18,6 @@ func init() {
 	}
 	basedir = os.Getenv("BASEDIR")
 	hostname = os.Getenv("HOSTNAME")
-	BotToken = os.Getenv("BOTTOKEN")
+	BotToken = os.Getenv("POCKET_BOTTOKEN")
 
 }

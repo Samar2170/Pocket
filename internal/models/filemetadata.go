@@ -3,7 +3,13 @@ package models
 import (
 	"pocket/pkg/db"
 	"time"
+
+	"gorm.io/gorm"
 )
+
+func init() {
+	db.DB.AutoMigrate(&FileMetaData{})
+}
 
 type FileMetaData struct {
 	ID          string `gorm:"primaryKey"`
@@ -23,4 +29,12 @@ func GetFileMetaDataById(id string) (FileMetaData, error) {
 	var fmd FileMetaData
 	err := db.DB.Where("id = ?", id).First(&fmd).Error
 	return fmd, err
+}
+
+type FileCaption struct {
+	*gorm.Model
+	ID      string       `gorm:"primaryKey"`
+	File    FileMetaData `gorm:"foreignKey:FileID"`
+	FileID  string
+	Caption string
 }

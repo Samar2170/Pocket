@@ -1,35 +1,26 @@
 package main
 
 import (
-	"log"
 	"net/http"
-	"os"
 	"pocket/handlers"
-	"pocket/internal"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
 
-	args := os.Args[1:]
-	switch args[0] {
-	case "load":
-		log.Println("loading accounts")
-		err := internal.LoadAccounts()
-		if err != nil {
-			log.Println(err)
-		}
-	case "fxb":
-		RunFXBStorageServer()
-	case "storage":
-		RunStorageServer()
-	case "server":
-		RunTelegramServer()
+	// args := os.Args[1:]
+	// switch args[0] {
+	// case "fxb":
+	// 	RunFXBStorageServer()
+	// case "storage":
+	// 	RunStorageServer()
+	// case "server":
+	// 	RunTelegramServer()
+	// default:
+	RunTelegramServer()
 
-	default:
-		log.Fatalln("invalid argument")
-	}
+	// }
 }
 
 func RunStorageServer() {
