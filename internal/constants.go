@@ -6,6 +6,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var UploadDir string
+
+const (
+	SUBFOLDER = "pocketstorage"
+)
+
 var ValidExtensions = map[string]struct{}{
 	"pdf":  {},
 	"docx": {},
@@ -21,8 +27,6 @@ var ValidExtensions = map[string]struct{}{
 	"xls":  {},
 	"csv":  {},
 }
-
-var UploadDir string
 
 func init() {
 	err := godotenv.Load()

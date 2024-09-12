@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func SaveFile(file multipart.File, fileHeader *multipart.FileHeader) (string, error) {
@@ -26,7 +27,7 @@ func SaveFile(file multipart.File, fileHeader *multipart.FileHeader) (string, er
 	if _, ok := ValidExtensions[extension]; !ok {
 		return "", errors.New("unallowed file extension")
 	}
-	newFilePath := filepath.Join(UploadDir, "pocketstorage", newFileName)
+	newFilePath := filepath.Join(UploadDir, SUBFOLDER, newFileName)
 	newFile, err := os.Create(newFilePath)
 	if err != nil {
 		return "", err
@@ -72,7 +73,7 @@ func SaveFileTelegram(fileURL string) (string, error) {
 	}
 
 	fileName := fileURL[strings.LastIndex(fileURL, "/")+1:]
-	newFilePath := filepath.Join(UploadDir, "pocketstorage", fileName)
+	newFilePath := filepath.Join(UploadDir, SUBFOLDER, fileName)
 	err = os.WriteFile(newFilePath, byteValue, 0644)
 	if err != nil {
 		return "", err
@@ -115,12 +116,28 @@ func SaveFileCaption(fileId, caption string) error {
 func SaveFileTags(fileId, tags string) error {
 	tagsSplit := strings.Split(tags, " ")
 	for _, tag := range tagsSplit {
+		var existingTag models.Tag
+		var newTag models.Tag
+		err := db.DB.Where("name = ?", tag).First(&existingTag).Error
+		if err == gorm.ErrRecordNotFound {
+			newTag = models.Tag{
+				Name: tag,
+			}
+			err = db.DB.Create(&newTag).Error
+			if err != nil {
+				return err
+			}
+			existingTag = newTag
+		}
+		if err != nil {
+			return err
+		}
 		ft := models.FileTag{
 			ID:     uuid.New().String(),
 			FileID: fileId,
-			Tag:    tag,
+			TagID:  existingTag.ID,
 		}
-		err := db.DB.Create(&ft).Error
+		err = db.DB.Create(&ft).Error
 		if err != nil {
 			return err
 		}

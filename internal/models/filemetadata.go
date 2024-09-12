@@ -40,10 +40,19 @@ type FileCaption struct {
 	Caption string
 }
 
+type Tag struct {
+	*gorm.Model
+	ID   int `gorm:"primaryKey"`
+	Name string
+}
+
 type FileTag struct {
 	*gorm.Model
-	ID     string       `gorm:"primaryKey"`
-	File   FileMetaData `gorm:"foreignKey:FileID"`
-	FileID string
-	Tag    string
+	ID      string       `gorm:"primaryKey"`
+	File    FileMetaData `gorm:"foreignKey:FileID"`
+	FileID  string
+	TagName string
+
+	Tag   Tag `gorm:"foreignKey:TagID"`
+	TagID int
 }
