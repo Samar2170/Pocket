@@ -1,7 +1,9 @@
 package internal
 
 import (
+	"archive/zip"
 	"bufio"
+	"bytes"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -159,4 +161,46 @@ func GetFileByID(id string) ([]byte, models.FileMetaData, error) {
 		return nil, fmd, err
 	}
 	return data, fmd, nil
+}
+
+func DownloadFiles(cutoff time.Time) (string, error) {
+	var buf bytes.Buffer
+	var fmds []models.FileMetaData
+	var err error
+	var opFileName string
+	zipWriter := zip.NewWriter(&buf)
+
+	err = db.DB.Where("created_at > ?", cutoff).Find(&fmds).Error
+	if err != nil {
+		return "", errors.New("Error fetching files " + err.Error())
+	}
+	opFileName = "archive_" + utils.GenerateRandomString(5) + ".zip"
+
+	for _, fmd := range fmds {
+		content, err := os.ReadFile(fmd.FilePath)
+		if err != nil {
+			return "", err
+		}
+		f, err := zipWriter.Create(fmd.NewFileName)
+		if err != nil {
+			return "", err
+		}
+		_, err = f.Write(content)
+		if err != nil {
+			return "", err
+		}
+	}
+	err = zipWriter.Close()
+	if err != nil {
+		return "", err
+	}
+	f, err := os.Create(TMPFOLDER + "/" + opFileName)
+	if err != nil {
+		return "", err
+	}
+	_, err = f.Write(buf.Bytes())
+	if err != nil {
+		return "", err
+	}
+	return opFileName, nil
 }

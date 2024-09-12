@@ -10,6 +10,7 @@ var UploadDir string
 
 const (
 	SUBFOLDER = "pocketstorage"
+	TMPFOLDER = "tmp"
 )
 
 var ValidExtensions = map[string]struct{}{

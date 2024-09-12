@@ -47,6 +47,9 @@ func RunStorageServer() {
 	getFileMetaDataHandler := http.HandlerFunc(handlers.GetFileMetaDataHandler)
 	storage.Handle("/metadata/{id}", getFileMetaDataHandler).Methods("GET")
 
+	syncFilesHandler := http.HandlerFunc(handlers.SyncFilesHandler)
+	storage.Handle("/sync", syncFilesHandler).Methods("POST")
+
 	uploadFileHandler := http.HandlerFunc(handlers.UploadFileHandler)
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
 	http.ListenAndServe(":8080", mux)
