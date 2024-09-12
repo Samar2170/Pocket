@@ -20,6 +20,7 @@ var (
 var userIds = []int64{
 	6983528406,
 	6474112057,
+	7543595397,
 }
 
 func RunTelegramServer() {
@@ -75,8 +76,8 @@ func handleUpdate(update tgbotapi.Update) {
 			msgString = err.Error()
 			log.Println(msgString)
 		}
-		if text != "" {
-			err = internal.SaveFileCaption(fileId, text)
+		if message.Caption != "" {
+			err = internal.SaveFileTags(fileId, message.Caption)
 			if err != nil {
 				msgString = err.Error()
 				log.Println(msgString)
@@ -88,8 +89,8 @@ func handleUpdate(update tgbotapi.Update) {
 			msgString = err.Error()
 			log.Println(msgString)
 		}
-		if text != "" {
-			err = internal.SaveFileCaption(fileId, text)
+		if message.Caption != "" {
+			err = internal.SaveFileTags(fileId, message.Caption)
 			if err != nil {
 				msgString = err.Error()
 				log.Println(msgString)
