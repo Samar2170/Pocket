@@ -9,3 +9,7 @@ account*.json
 __debug**
 
 pocket*
+
+/tmp/
+
+/.vscode/
