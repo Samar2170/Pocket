@@ -11,6 +11,7 @@ import (
 	"pocket/internal/models"
 	"pocket/pkg/db"
 	"pocket/pkg/utils"
+	"strconv"
 	"strings"
 	"time"
 
@@ -76,11 +77,19 @@ func SaveFileTelegram(fileURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	newFileName := fileName
+	var conflicts int64
+	db.DB.Model(&models.FileMetaData{}).Where("new_file_name = ?", fileName).Count(&conflicts)
+	if conflicts > 0 {
+		tmpF := strings.Split(fileName, ".")
+		tmpF[0] = tmpF[0] + "_" + strconv.Itoa(int(conflicts))
+		newFileName = tmpF[0] + "." + tmpF[len(tmpF)-1]
+	}
 	fileId := uuid.New().String()
 	fmd := models.FileMetaData{
 		ID:          fileId,
 		OgFileName:  fileName,
-		NewFileName: fileName,
+		NewFileName: newFileName,
 		FilePath:    newFilePath,
 		Extension:   filepath.Ext(fileName),
 		Size:        len(byteValue),
@@ -101,6 +110,22 @@ func SaveFileCaption(fileId, caption string) error {
 		Caption: caption,
 	}
 	return db.DB.Create(&fc).Error
+}
+
+func SaveFileTags(fileId, tags string) error {
+	tagsSplit := strings.Split(tags, " ")
+	for _, tag := range tagsSplit {
+		ft := models.FileTag{
+			ID:     uuid.New().String(),
+			FileID: fileId,
+			Tag:    tag,
+		}
+		err := db.DB.Create(&ft).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func GetFileByID(id string) ([]byte, models.FileMetaData, error) {

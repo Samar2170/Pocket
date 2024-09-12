@@ -9,6 +9,7 @@ import (
 
 func init() {
 	db.DB.AutoMigrate(&FileMetaData{})
+	db.DB.AutoMigrate(&FileTag{})
 }
 
 type FileMetaData struct {
@@ -37,4 +38,12 @@ type FileCaption struct {
 	File    FileMetaData `gorm:"foreignKey:FileID"`
 	FileID  string
 	Caption string
+}
+
+type FileTag struct {
+	*gorm.Model
+	ID     string       `gorm:"primaryKey"`
+	File   FileMetaData `gorm:"foreignKey:FileID"`
+	FileID string
+	Tag    string
 }

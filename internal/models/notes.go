@@ -10,7 +10,7 @@ func init() {
 }
 
 type Note struct {
-	ID          string `gorm:"primaryKey"`
+	ID          uint   `gorm:"primaryKey"`
 	NoteContent string `gorm:"type:text"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
