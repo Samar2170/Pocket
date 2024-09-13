@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"pocket/handlers"
+	"pocket/internal"
 	"pocket/pkg/mw"
 	"sync"
 
@@ -15,6 +16,8 @@ func main() {
 
 	args := os.Args[1:]
 	switch args[0] {
+	case "setup":
+		Setup()
 	case "fxb":
 		RunFXBStorageServer()
 	case "storage":
@@ -34,6 +37,28 @@ func main() {
 		wg.Wait()
 	default:
 		log.Panic("Invalid argument")
+	}
+}
+
+func Setup() {
+	uploadDir := internal.UploadDir
+	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
+		err := os.MkdirAll(uploadDir, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if _, err := os.Stat("tmp"); os.IsNotExist(err) {
+		err := os.MkdirAll("tmp", 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	if _, err := os.Stat("logs"); os.IsNotExist(err) {
+		err := os.MkdirAll("logs", 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
