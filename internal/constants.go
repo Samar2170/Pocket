@@ -3,6 +3,8 @@ package internal
 import (
 	"os"
 
+	"pocket/pkg/auditlog"
+
 	"github.com/joho/godotenv"
 )
 
@@ -32,7 +34,7 @@ var ValidExtensions = map[string]struct{}{
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error loading .env file")
 	}
 	UploadDir = os.Getenv("UPLOADDIR")
 }

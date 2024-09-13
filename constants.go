@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"pocket/pkg/auditlog"
 
 	"github.com/joho/godotenv"
 )
@@ -18,7 +19,7 @@ var (
 func init() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error loading .env file")
 	}
 	basedir = os.Getenv("BASEDIR")
 	hostname = os.Getenv("HOSTNAME")

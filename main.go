@@ -23,7 +23,7 @@ func main() {
 		RunFXBStorageServer()
 	case "storage":
 		RunStorageServer()
-	case "server":
+	default:
 		var wg sync.WaitGroup
 		wg.Add(1)
 		go func() {
@@ -36,8 +36,6 @@ func main() {
 			wg.Done()
 		}()
 		wg.Wait()
-	default:
-		log.Panic("Invalid argument")
 	}
 }
 
