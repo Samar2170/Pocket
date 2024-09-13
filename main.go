@@ -7,6 +7,7 @@ import (
 	"os"
 	"pocket/handlers"
 	"pocket/internal"
+	"pocket/pkg/auth"
 	"pocket/pkg/mw"
 	"sync"
 
@@ -14,16 +15,17 @@ import (
 )
 
 func main() {
-
 	args := os.Args[1:]
-	switch args[0] {
-	case "setup":
-		Setup()
-	case "fxb":
-		RunFXBStorageServer()
-	case "storage":
-		RunStorageServer()
-	default:
+	if len(args) > 0 {
+		switch args[0] {
+		case "setup":
+			Setup()
+		case "fxb":
+			RunFXBStorageServer()
+		case "storage":
+			RunStorageServer()
+		}
+	} else {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		go func() {
@@ -59,6 +61,7 @@ func Setup() {
 			log.Fatal(err)
 		}
 	}
+	auth.GetNewKey()
 }
 
 func RunStorageServer() {
@@ -79,6 +82,7 @@ func RunStorageServer() {
 	uploadFileHandler := http.HandlerFunc(handlers.UploadFileHandler)
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
 	wrappedMux := mw.LogRequest(mux)
+	wrappedMux = mw.APIKeyMiddleware(wrappedMux)
 	addr := fmt.Sprintf("%s:%s", Host, Port)
 	http.ListenAndServe(addr, wrappedMux)
 }
