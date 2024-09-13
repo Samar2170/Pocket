@@ -11,10 +11,14 @@ import (
 	"pocket/pkg/utils"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/natefinch/lumberjack"
+	"github.com/rs/zerolog"
 )
 
 var (
 	bot *tgbotapi.BotAPI
+	// logger tgbotapi.BotLogger
+	logger zerolog.Logger
 )
 
 var userIds = []int64{
@@ -23,12 +27,26 @@ var userIds = []int64{
 	7543595397,
 }
 
+func init() {
+	tgbotLogFile := &lumberjack.Logger{
+		Filename:   "logs/tgbot.log",
+		MaxSize:    10,
+		MaxBackups: 3,
+		MaxAge:     28,
+		Compress:   false,
+	}
+	logger = zerolog.New(tgbotLogFile).With().Timestamp().Logger()
+	logger.Printf("Telegram server started")
+
+}
+
 func RunTelegramServer() {
 	var err error
 	bot, err = tgbotapi.NewBotAPI(BotToken)
 	if err != nil {
 		panic(err)
 	}
+	tgbotapi.SetLogger(&logger)
 	bot.Debug = true
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
