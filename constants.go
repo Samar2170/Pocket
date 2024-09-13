@@ -6,10 +6,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var basedir string
-var hostname string
+var (
+	basedir  string
+	hostname string
 
-var BotToken string
+	BotToken string
+	Host     string
+	Port     string
+)
 
 func init() {
 	err := godotenv.Load()
@@ -19,5 +23,7 @@ func init() {
 	basedir = os.Getenv("BASEDIR")
 	hostname = os.Getenv("HOSTNAME")
 	BotToken = os.Getenv("POCKET_BOTTOKEN")
+	Host = os.Getenv("HOST")
+	Port = os.Getenv("PORT")
 
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -80,5 +81,6 @@ func RunStorageServer() {
 	uploadFileHandler := http.HandlerFunc(handlers.UploadFileHandler)
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
 	wrappedMux := mw.LogRequest(mux)
-	http.ListenAndServe(":8080", wrappedMux)
+	addr := fmt.Sprintf("%s:%s", Host, Port)
+	http.ListenAndServe(addr, wrappedMux)
 }
