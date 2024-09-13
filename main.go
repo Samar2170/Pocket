@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"pocket/handlers"
+	"pocket/pkg/mw"
 	"sync"
 
 	"github.com/gorilla/mux"
@@ -37,6 +38,7 @@ func main() {
 }
 
 func RunStorageServer() {
+
 	mux := mux.NewRouter()
 	storage := mux.PathPrefix("/storage").Subrouter()
 	storage.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -52,5 +54,6 @@ func RunStorageServer() {
 
 	uploadFileHandler := http.HandlerFunc(handlers.UploadFileHandler)
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
-	http.ListenAndServe(":8080", mux)
+	wrappedMux := mw.LogRequest(mux)
+	http.ListenAndServe(":8080", wrappedMux)
 }
