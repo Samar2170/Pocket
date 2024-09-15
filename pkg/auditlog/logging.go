@@ -6,8 +6,16 @@ import (
 )
 
 var Errorlogger zerolog.Logger
+var AuditLogger zerolog.Logger
 
 func init() {
+	auditLogFile := &lumberjack.Logger{
+		Filename:   "logs/audit.log",
+		MaxSize:    10,
+		MaxBackups: 3,
+		MaxAge:     28,
+		Compress:   false,
+	}
 	logFile := &lumberjack.Logger{
 		Filename:   "logs/error.log",
 		MaxSize:    10,
@@ -16,4 +24,5 @@ func init() {
 		Compress:   false,
 	}
 	Errorlogger = zerolog.New(logFile).With().Timestamp().Logger()
+	AuditLogger = zerolog.New(auditLogFile).With().Timestamp().Logger()
 }
