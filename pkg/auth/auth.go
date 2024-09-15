@@ -33,6 +33,7 @@ func GenerateKey() string {
 	key := make([]byte, 16)
 	_, err := rand.Read(key)
 	if err != nil {
+		auditlog.AuditLogger.Error().Str("error", err.Error()).Msg("Error generating key")
 		panic(err)
 	}
 	return hex.EncodeToString(key)

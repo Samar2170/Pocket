@@ -44,6 +44,7 @@ func RunTelegramServer() {
 	var err error
 	bot, err = tgbotapi.NewBotAPI(BotToken)
 	if err != nil {
+		auditlog.AuditLogger.Error().Str("error", err.Error()).Msg("Error creating bot")
 		panic(err)
 	}
 	tgbotapi.SetLogger(&logger)
