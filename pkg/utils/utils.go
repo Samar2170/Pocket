@@ -2,8 +2,23 @@ package utils
 
 import (
 	"math/rand"
+	"os"
+	"path/filepath"
+	"pocket/pkg/auditlog"
 	"time"
 )
+
+var Basedir string
+
+func init() {
+	exePath, err := os.Executable()
+	if err != nil {
+		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error getting executable path")
+		panic(err)
+	}
+	Basedir = filepath.Dir(exePath)
+	Basedir = filepath.Join(Basedir, "..", "..")
+}
 
 func CheckArray[T comparable](arr []T, value T) bool {
 	for _, v := range arr {
