@@ -7,38 +7,45 @@ import (
 	"os"
 	"pocket/handlers"
 	"pocket/internal"
+	"pocket/pkg/auditlog"
 	"pocket/pkg/auth"
 	"pocket/pkg/mw"
-	"sync"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) > 0 {
-		switch args[0] {
-		case "setup":
-			Setup()
-		case "fxb":
-			RunFXBStorageServer()
-		case "storage":
-			RunStorageServer()
-		}
-	} else {
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			RunTelegramServer()
-			wg.Done()
-		}()
-		wg.Add(1)
-		go func() {
-			RunStorageServer()
-			wg.Done()
-		}()
-		wg.Wait()
+	exePath, err := os.Getwd()
+	if err != nil {
+		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error getting executable path")
+		panic(err)
 	}
+	fmt.Println(exePath)
+
+	// args := os.Args[1:]
+	// if len(args) > 0 {
+	// 	switch args[0] {
+	// 	case "setup":
+	// 		Setup()
+	// 	case "fxb":
+	// 		RunFXBStorageServer()
+	// 	case "storage":
+	// 		RunStorageServer()
+	// 	}
+	// } else {
+	// 	var wg sync.WaitGroup
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		RunTelegramServer()
+	// 		wg.Done()
+	// 	}()
+	// 	wg.Add(1)
+	// 	go func() {
+	// 		RunStorageServer()
+	// 		wg.Done()
+	// 	}()
+	// 	wg.Wait()
+	// }
 }
 
 func Setup() {
