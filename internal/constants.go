@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"pocket/pkg/auditlog"
+	"pocket/pkg/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -32,7 +33,8 @@ var ValidExtensions = map[string]struct{}{
 }
 
 func init() {
-	err := godotenv.Load()
+	envPath := utils.Basedir + "/.env"
+	err := godotenv.Load(envPath)
 	if err != nil {
 		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error loading .env file")
 	}

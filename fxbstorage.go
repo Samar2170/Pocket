@@ -19,7 +19,7 @@ func RunFXBStorageServer() {
 }
 
 func GetFXBStorage(c echo.Context) error {
-	finalPath := basedir + c.Param("baseFolder") + "/" + c.Param("subFolder") + "/" + c.Param("fileName")
+	finalPath := FXBDir + c.Param("baseFolder") + "/" + c.Param("subFolder") + "/" + c.Param("fileName")
 	file, err := os.Open(finalPath)
 	imageFormat := strings.Split(file.Name(), ".")[len(strings.Split(file.Name(), "."))-1]
 	if err != nil {

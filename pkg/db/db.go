@@ -2,6 +2,7 @@ package db
 
 import (
 	"pocket/pkg/auditlog"
+	"pocket/pkg/utils"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -14,7 +15,7 @@ var dbFileName string
 func connect() {
 	var err error
 	if environment == "dev" {
-		DB, err = gorm.Open(sqlite.Open("dev.db"), &gorm.Config{})
+		DB, err = gorm.Open(sqlite.Open(utils.Basedir+"/dev.db"), &gorm.Config{})
 		if err != nil {
 			auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error connecting to database")
 			panic(err)

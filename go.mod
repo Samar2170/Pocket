@@ -7,7 +7,10 @@ require (
 	gorm.io/driver/sqlite v1.5.6
 )
 
-require github.com/rs/zerolog v1.33.0 // indirect
+require (
+	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
+	github.com/rs/zerolog v1.33.0 // indirect
+)
 
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
