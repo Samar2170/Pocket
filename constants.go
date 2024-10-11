@@ -26,7 +26,6 @@ func init() {
 	FXBDir = os.Getenv("FXBDIR")
 	hostname = os.Getenv("HOSTNAME")
 	BotToken = os.Getenv("POCKET_BOTTOKEN")
-	Host = os.Getenv("HOST")
+	Host = os.Getenv("HOSTNAME")
 	Port = os.Getenv("PORT")
-
 }

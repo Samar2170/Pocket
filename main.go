@@ -7,9 +7,11 @@ import (
 	"os"
 	"pocket/handlers"
 	"pocket/internal"
+	"pocket/pkg/auditlog"
 	"pocket/pkg/auth"
 	"pocket/pkg/mw"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -85,5 +87,13 @@ func RunStorageServer() {
 	wrappedMux := mw.LogRequest(mux)
 	wrappedMux = mw.APIKeyMiddleware(wrappedMux)
 	addr := fmt.Sprintf("%s:%s", Host, Port)
-	http.ListenAndServe(addr, wrappedMux)
+	auditlog.AuditLogger.Println("Storage server started at " + addr)
+	srv := &http.Server{
+		Handler:      wrappedMux,
+		Addr:         "192.168.1.8:" + Port,
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
 }
