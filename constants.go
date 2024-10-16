@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"pocket/pkg/auditlog"
-	"pocket/pkg/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -17,9 +16,8 @@ var (
 )
 
 func init() {
-	var err error
-	envPath := utils.Basedir + "/.env"
-	err = godotenv.Load(envPath)
+	envPath := ".env"
+	err := godotenv.Load(envPath)
 	if err != nil {
 		auditlog.Errorlogger.Error().Str("error", err.Error()).Msg("Error loading .env file")
 	}

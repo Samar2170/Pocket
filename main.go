@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -27,6 +26,8 @@ func main() {
 			RunFXBStorageServer()
 		case "storage":
 			RunStorageServer()
+		case "keygen":
+			auth.GetNewKey()
 		}
 	} else {
 		var wg sync.WaitGroup
@@ -86,11 +87,10 @@ func RunStorageServer() {
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
 	wrappedMux := mw.LogRequest(mux)
 	wrappedMux = mw.APIKeyMiddleware(wrappedMux)
-	addr := fmt.Sprintf("%s:%s", Host, Port)
-	auditlog.AuditLogger.Println("Storage server started at " + addr)
+	auditlog.AuditLogger.Println("Storage server started at " + Host + ":" + Port)
 	srv := &http.Server{
 		Handler:      wrappedMux,
-		Addr:         "192.168.1.8:" + Port,
+		Addr:         "192.168.1.8" + ":" + Port,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

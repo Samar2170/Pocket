@@ -30,6 +30,7 @@ var ValidExtensions = map[string]struct{}{
 	"xlsx": {},
 	"xls":  {},
 	"csv":  {},
+	"webp": {},
 }
 
 func init() {

@@ -22,7 +22,7 @@ func UploadFileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	url, err := internal.SaveFile(file, fileHeader)
 	if err != nil {
-		response.InternalServerErrorResponse(w, err.Error())
+		response.BadRequestResponse(w, err.Error())
 		return
 	}
 	response.JSONResponse(w, map[string]string{"file-id": url})
