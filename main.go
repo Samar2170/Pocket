@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"pocket/handlers"
@@ -16,7 +17,6 @@ import (
 )
 
 func main() {
-
 	args := os.Args[1:]
 	if len(args) > 0 {
 		switch args[0] {
@@ -69,6 +69,23 @@ func Setup() {
 }
 
 func RunStorageServer() {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		log.Fatal(err)
+	}
+	var networkIp string
+	for _, addr := range addrs {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				networkIp = ipnet.IP.String()
+				break
+			}
+		}
+	}
+	Port := os.Getenv("PORT")
+	if Port == "" {
+		Port = "8080"
+	}
 
 	mux := mux.NewRouter()
 	storage := mux.PathPrefix("/storage").Subrouter()
@@ -87,10 +104,10 @@ func RunStorageServer() {
 	storage.Handle("/upload", uploadFileHandler).Methods("POST")
 	wrappedMux := mw.LogRequest(mux)
 	wrappedMux = mw.APIKeyMiddleware(wrappedMux)
-	auditlog.AuditLogger.Println("Storage server started at " + Host + ":" + Port)
+	auditlog.AuditLogger.Println("Storage server started at " + networkIp + ":" + Port)
 	srv := &http.Server{
 		Handler:      wrappedMux,
-		Addr:         "192.168.1.8" + ":" + Port,
+		Addr:         networkIp + ":" + Port,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
