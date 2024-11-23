@@ -28,6 +28,9 @@ func main() {
 			RunStorageServer()
 		case "keygen":
 			auth.GetNewKey()
+		case "skey":
+			key := auth.GenerateKey(32)
+			auditlog.AuditLogger.Info().Str("key", key).Msg("Generated key")
 		}
 	} else {
 		var wg sync.WaitGroup
@@ -77,8 +80,10 @@ func RunStorageServer() {
 	for _, addr := range addrs {
 		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				networkIp = ipnet.IP.String()
-				break
+				if ipnet.IP.String()[:4] == "192" {
+					networkIp = ipnet.IP.String()
+					break
+				}
 			}
 		}
 	}

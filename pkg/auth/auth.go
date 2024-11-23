@@ -31,8 +31,8 @@ func init() {
 	db.DB.AutoMigrate(&APIKey{})
 }
 
-func GenerateKey() string {
-	key := make([]byte, 16)
+func GenerateKey(n int) string {
+	key := make([]byte, n)
 	_, err := rand.Read(key)
 	if err != nil {
 		auditlog.AuditLogger.Error().Str("error", err.Error()).Msg("Error generating key")
@@ -42,7 +42,7 @@ func GenerateKey() string {
 }
 
 func GetNewKey() {
-	key := GenerateKey()
+	key := GenerateKey(16)
 	keyHash := HashKey(key)
 	db.DB.Model(&APIKey{}).Where("id = ?", 1).Update("key_hash", keyHash)
 	// db.DB.Create(&APIKey{KeyHash: keyHash})
